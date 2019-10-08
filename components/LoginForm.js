@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+
 import {
   Container,
   Header,
@@ -13,9 +14,18 @@ import {
 import { connect } from "react-redux";
 
 // Actions
-// import { login } from "./redux/actions";
+import {
+  login,
+  signup,
+  logout,
+  checkForExpiredToken
+} from "../redux/actions/auth";
 
 class LoginForm extends Component {
+  componentDidMount() {
+    this.props.check();
+    //checkForExpiredToken();
+  }
   state = {
     username: "",
     password: ""
@@ -25,19 +35,47 @@ class LoginForm extends Component {
   };
 
   handleSubmit = () => {
-    alert("Check my code the states are empty");
+    this.props.login(this.state);
+  };
+  handleSubmit2 = () => {
+    this.props.signup(this.state);
+  };
+  getBottom = () => {
+    if (!this.props.user) {
+      return (
+        <Container>
+          <Button onPress={this.handleSubmit}>
+            <Text>Login</Text>
+          </Button>
+          <Button onPress={this.handleSubmit2}>
+            <Text>SignUp</Text>
+          </Button>
+        </Container>
+      );
+    } else {
+      return (
+        <Button onPress={this.props.logout}>
+          <Text>LogOut</Text>
+        </Button>
+      );
+    }
   };
 
   render() {
     const { username, password } = this.state;
-    console.log(this.state);
+
     return (
       <Container>
         <Header />
         <Content>
           <Form>
             <Item>
-              <Input name="username" value={username} placeholder="Username" />
+              <Input
+                name="username"
+                value={username}
+                placeholder="Username"
+                onChangeText={username => this.handleChange({ username })}
+              />
             </Item>
             <Item last>
               <Input
@@ -45,15 +83,32 @@ class LoginForm extends Component {
                 placeholder="Password"
                 secureTextEntry
                 name="password"
+                onChangeText={password => this.handleChange({ password })}
               />
             </Item>
-            <Button onPress={this.handleSubmit}>
-              <Text>Login</Text>
-            </Button>
+
+            {this.getBottom()}
           </Form>
         </Content>
       </Container>
     );
   }
 }
-export default LoginForm;
+
+const mapDispatchToProps = dispatch => {
+  return {
+    login: user => dispatch(login(user)),
+    signup: user => dispatch(signup(user)),
+    logout: user => dispatch(logout(user)),
+    check: () => dispatch(checkForExpiredToken())
+  };
+};
+const mapStateToProps = state => {
+  return {
+    user: state.rootAuth.user
+  };
+};
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(LoginForm);
